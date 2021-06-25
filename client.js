@@ -1,5 +1,7 @@
 'use strict';
 
+const qs = require('querystring');
+
 const Session = require('./session.js');
 
 const UNIX_EPOCH = 'Thu, 01 Jan 1970 00:00:00 GMT';
@@ -13,22 +15,37 @@ const parseHost = host => {
   return host;
 };
 
+
 class Client {
   constructor(req, res) {
     this.req = req;
     this.res = res;
     this.host = parseHost(req.headers.host);
+    this.body = null;
     this.token = undefined;
     this.session = null;
     this.cookie = {};
     this.preparedCookie = [];
     this.parseCookie();
+    // this.parseBody();
   }
 
   static async getInstance(req, res) {
     const client = new Client(req, res);
     await Session.restore(client);
     return client;
+  }
+
+  parseBody() {
+    const {req} = this;
+    let requestBody = "";
+    req.on('data', data => {
+      requestBody += data;
+    });
+    req.on('end', () => {
+      this.body = qs.parse(requestBody);
+      // console.log(this.body)
+    });
   }
 
   parseCookie() {
