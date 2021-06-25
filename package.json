@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "json-serialize": "^1.1.3"
+  }
+}
