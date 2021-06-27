@@ -2,5 +2,9 @@
   {
     "userId": 2,
     "salt": "f1ddbd4f568092944eb891e51ae454e3"
+  },
+  {
+    "userId": 3,
+    "salt": "cd8470f1beded2311f4b322cbbd5217e"
   }
 ]

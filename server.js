@@ -2,26 +2,56 @@
 
 const http = require('http');
 const qs = require('querystring');
+const axios = require('axios');
+const validate_email = require('email-validator').validate;
 
 const Client = require('./client.js');
 const Session = require('./session.js');
 const Database = require('./database.js');
+const createUser = require('./api/createUser.js');
+const authUser = require('./api/authUser.js');
 
-global.database = Database.getInstance("~/projects/genesis-practical-task/data")
+global.database = Database.getInstance(`${__dirname}/data`);
 
 const routing = {
   '/user/create': async client => {
     const body = client.body;
-    return body;
+    if (!(body["email"] && body["password"])) {
+      if (!(typeof body["password"] === "string" && validate_email(body["email"]) && body["password"].length > 7)) {
+        return 400;
+      }
+    }
+    const newUser = createUser(
+      body["email"],
+      body["password"]
+    );
+    return newUser;
   },
   '/user/login': async client => {
+    const body = client.body;
+    if (!(body["email"] && body["password"])) {
+      if (!(typeof body["password"] === "string" && validate_email(body["email"]) && body["password"].length > 7)) {
+        client.res.statusCode = 400;
+        return "Email or password are in incorrect format";
+      }
+    }
+    const user = await authUser(body["email"], body["password"]);
+    if (user === 404 || user === 403) return user;
     Session.start(client);
-    return `Session token is: ${client.token}`;
+    return {
+      user,
+      sessionToken: client.token
+    };
   },
   '/btcRate': async client => {
-    const result = `Session destroyed: ${client.token}`;
-    Session.delete(client);
-    return result;
+    if (client.session) {
+      const req_url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah";
+      const response = await axios.get(req_url);
+      console.log(response.data.bitcoin.uah);
+      return response.data.bitcoin.uah;
+    }
+    client.res.statusCode = 403;
+    return "Access denied";
   },
 };
 

@@ -3,10 +3,10 @@
 const crypto = require('crypto');
 
 module.exports = async (email, password) => {
-  const user = global.database.getUserByEmail(email);
+  const user = await global.database.getUserByEmail(email);
   if (!user) return 404;
 
-  const salt = await global.database.getSaltByUserId(user.id);
+  const {salt} = await global.database.getSaltByUserId(user.id);
   if (!salt) return 404;
 
   const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');

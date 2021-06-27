@@ -30,14 +30,28 @@ class Database {
     return JSON.parse(data);
   }
 
-  async getSaltById(id) {
+  async getUserByEmail(email) {
+    const usersDb = await this.deserializeUsersDb();
+    for (let user of usersDb.users) {
+      if (user.email === email) {
+        return user;
+      }
+    }
+  }
 
+  async getSaltByUserId(id) {
+    const saltDb = await this.deserializeSaltDb();
+    for (let salt of saltDb) {
+      if (salt.userId === id) {
+        return salt;
+      }
+    }
   }
 
   async serializeUser(newUser, salt) {
-    const usersDb = this.deserializeUsersDb();
-    const saltDb = this.deserializeSaltDb();
-    for (user of usersDb.users) {
+    const usersDb = await this.deserializeUsersDb();
+    const saltDb = await this.deserializeSaltDb();
+    for (let user of usersDb.users) {
       if (user.email === newUser.email) return -1;
     }
     newUser.id = usersDb.nextId;

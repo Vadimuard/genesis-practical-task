@@ -27,25 +27,12 @@ class Client {
     this.cookie = {};
     this.preparedCookie = [];
     this.parseCookie();
-    // this.parseBody();
   }
 
   static async getInstance(req, res) {
     const client = new Client(req, res);
     await Session.restore(client);
     return client;
-  }
-
-  parseBody() {
-    const {req} = this;
-    let requestBody = "";
-    req.on('data', data => {
-      requestBody += data;
-    });
-    req.on('end', () => {
-      this.body = qs.parse(requestBody);
-      // console.log(this.body)
-    });
   }
 
   parseCookie() {
