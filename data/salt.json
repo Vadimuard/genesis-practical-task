@@ -6,5 +6,9 @@
   {
     "userId": 3,
     "salt": "cd8470f1beded2311f4b322cbbd5217e"
+  },
+  {
+    "userId": 4,
+    "salt": "a04d73a5b403c4768539d3308aabb556"
   }
 ]

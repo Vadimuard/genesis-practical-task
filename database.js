@@ -6,7 +6,6 @@ const path = require('path');
 class Database {
   constructor(dataPath) {
     this.usersPath = path.join(dataPath, "users.json");
-    // this.sessionsPath = path.join(dataPath, "session.json");
     this.saltPath = path.join(dataPath, "salt.json");
   }
 
@@ -51,26 +50,45 @@ class Database {
   async serializeUser(newUser, salt) {
     const usersDb = await this.deserializeUsersDb();
     const saltDb = await this.deserializeSaltDb();
+
+    const response = {
+      statusCode: 0,
+      err: null,
+      data: null
+    };
+
     for (let user of usersDb.users) {
-      if (user.email === newUser.email) return -1;
+      if (user.email === newUser.email) {
+        response.statusCode = 409;
+        response.err = "user with this email already exists";
+        return response;
+      }
     }
     newUser.id = usersDb.nextId;
     usersDb.nextId += 1;
     usersDb.users.push(newUser);
+
     const userErr = await fs.promises.writeFile(this.usersPath, JSON.stringify(usersDb, null, 2));
-    if (userErr) return -1;
+    if (userErr) {
+      response.statusCode = 500;
+      response.err = userErr;
+      return response;
+    }
 
     saltDb.push({
       userId: newUser.id,
       salt: salt
     });
     const saltErr = await fs.promises.writeFile(this.saltPath, JSON.stringify(saltDb, null, 2));
-    if (saltErr) return -1;
-    return newUser;
-  }
 
-  async serializeSession(newSession) {
-
+    if (saltErr) {
+      response.statusCode = 500;
+      response.err = saltErr;
+      return response;
+    }
+    response.statusCode = 200;
+    response.data = newUser;
+    return response;
   }
 }
 

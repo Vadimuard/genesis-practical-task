@@ -17,41 +17,47 @@ const routing = {
   '/user/create': async client => {
     const body = client.body;
     if (!(body["email"] && body["password"])) {
-      if (!(typeof body["password"] === "string" && validate_email(body["email"]) && body["password"].length > 7)) {
-        return 400;
-      }
+      client.res.statusCode = 400;
+      return "To register you have to provide your email and password";
     }
-    const newUser = createUser(
+    if (!(typeof body["password"] === "string" && validate_email(body["email"]) && body["password"].length > 7)) {
+      client.res.statusCode = 400;
+      return "Email or password are in incorrect format";
+    }
+    const response = await createUser(
       body["email"],
       body["password"]
     );
-    return newUser;
+    client.res.statusCode = response.statusCode;
+    if (response.err) return response.err;
+    return response.data;
   },
   '/user/login': async client => {
     const body = client.body;
     if (!(body["email"] && body["password"])) {
-      if (!(typeof body["password"] === "string" && validate_email(body["email"]) && body["password"].length > 7)) {
-        client.res.statusCode = 400;
-        return "Email or password are in incorrect format";
-      }
+      client.res.statusCode = 400;
+      return "To sign in you have to provide your email and password";
     }
-    const user = await authUser(body["email"], body["password"]);
-    if (user === 404 || user === 403) return user;
+    if (!(typeof body["password"] === "string" && validate_email(body["email"]) && body["password"].length > 7)) {
+      client.res.statusCode = 400;
+      return "Email or password are in incorrect format";
+    }
+    const response = await authUser(body["email"], body["password"]);
+    client.res.statusCode = response.statusCode;
+    if (response.err) {
+      return response.err;
+    }
     Session.start(client);
-    return {
-      user,
-      sessionToken: client.token
-    };
+    return response.data;
   },
   '/btcRate': async client => {
     if (client.session) {
       const req_url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah";
       const response = await axios.get(req_url);
-      console.log(response.data.bitcoin.uah);
       return response.data.bitcoin.uah;
     }
     client.res.statusCode = 403;
-    return "Access denied";
+    return "You have to sign in to access this data";
   },
 };
 

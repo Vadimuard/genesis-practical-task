@@ -11,6 +11,6 @@ module.exports = async (email, password) => {
     password: hash
   };
 
-  const newUser = global.database.serializeUser(user, salt);
-  return newUser;
+  const response = await global.database.serializeUser(user, salt);
+  return response;
 };
