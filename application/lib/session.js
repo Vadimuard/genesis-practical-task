@@ -1,6 +1,6 @@
 'use strict';
 
-const storage = require('./storage.js');
+const storage = require('./storage');
 
 const TOKEN_LENGTH = 32;
 const ALPHA_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -43,7 +43,7 @@ class Session extends Map {
     if (sessionToken) {
       return new Promise((resolve, reject) => {
         storage.get(sessionToken, (err, session) => {
-          if (err) reject(new Error('No session'));
+          if (err) reject(new Error('No session found'));
           Object.setPrototypeOf(session, Session.prototype);
           client.token = sessionToken;
           client.session = session;
